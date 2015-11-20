@@ -3,7 +3,10 @@ package org.restsql.core.impl.mysql;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Timestamp;
 import java.sql.Types;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 
 import org.restsql.core.impl.ColumnMetaDataImpl;
 
@@ -58,10 +61,36 @@ public class MySqlColumnMetaData extends ColumnMetaDataImpl {
 			if (resultSet.wasNull()) {
 				value = null;
 			}
-		} else {
+		} 
+		else if (getColumnType() == Types.TIMESTAMP) {
+			value =resultSet.getTimestamp(getColumnNumber());
+			if (resultSet.wasNull()) {
+				value = null;
+			}
+			else{
+				value = getTimestampString((java.util.Date)value);
+			}
+		} 
+		else if (getColumnType() == Types.DATE) {
+			value =resultSet.getDate(getColumnNumber());
+			if (resultSet.wasNull()) {
+				value = null;
+			}
+			else{
+				value = getTimestampString((java.util.Date)value);
+			}
+		} 
+		else {
 			value = super.getResultByNumber(resultSet);
 		}
 		return value;
+	}
+	
+	public String  getTimestampString(java.util.Date p)
+	{
+		DateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+		String nowTime = df.format(p);	
+		return nowTime;
 	}
 
 }

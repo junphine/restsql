@@ -17,11 +17,23 @@ public class WriteResponse {
 	private List<Set<ResponseValue>> rows;
 
 	private int rowsAffected;
+	
+	private ArrayList<Object> attributes=new ArrayList<Object>();
 
 	/** Constructs response with empty requestResults sized for 1. For framework use. */
 	public WriteResponse() {
 	}
 
+	public Object[] getAttributes(){
+		addAttribute("rowsAffected", getRowsAffected());
+		return attributes.toArray();
+	}
+	
+	/** Adds request result. For framework use. */
+	public void addAttribute(String name,Object value) {		
+		attributes.add(name);
+		attributes.add(value);
+	}
 	/** Adds request result. For framework use. */
 	public void addRow(final Set<ResponseValue> values) {
 		if (rows == null) {

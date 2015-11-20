@@ -7,11 +7,16 @@ import java.util.List;
 import java.util.Map;
 
 import org.restsql.core.ColumnMetaData;
+import org.restsql.core.Factory.SqlResourceFactory;
+import org.restsql.core.Factory;
 import org.restsql.core.InvalidRequestException;
 import org.restsql.core.Request;
+import org.restsql.core.SqlResource;
 import org.restsql.core.Request.Type;
 import org.restsql.core.RequestValue;
 import org.restsql.core.RequestValue.Operator;
+import org.restsql.core.SqlBuilder.SqlStruct;
+import org.restsql.core.sqlresource.SqlResourceDefinition;
 import org.restsql.core.SqlBuilder;
 import org.restsql.core.SqlResourceMetaData;
 import org.restsql.core.TableMetaData;
@@ -27,9 +32,45 @@ public abstract class AbstractSqlBuilder implements SqlBuilder {
 	private static final int DEFAULT_INSERT_SIZE = 300;
 	private static final int DEFAULT_SELECT_SIZE = 300;
 	private static final int DEFAULT_UPDATE_SIZE = 300;
+	
+	/** Creates select SQL. */
+	public SqlStruct buildSelectSql(final SqlResourceMetaData metaData, final String mainSql,
+			final Request request,SqlResourceDefinition definition) throws InvalidRequestException
+	 {
+			final SqlStruct sql = new SqlStruct(mainSql.length(), DEFAULT_SELECT_SIZE);
+			sql.getMain().append(mainSql);
+			try{				
+				sql.groupby = definition.getGroupBy().getValue();
+			}
+			catch(Exception ex){
+				
+			}
+			buildSelectSql(metaData, request.getResourceIdentifiers(), sql);
+			buildSelectSql(metaData, request.getParameters(), sql);
+			
+			if(sql.groupby!=null){
+				sql.appendToBothClauses(" GROUP BY ");
+				sql.appendToBothClauses(sql.groupby);
+			}
+			
+			if(request.getOrderBy()!=null){
+				sql.appendToBothClauses(" ORDER BY ");
+				sql.appendToBothClauses(request.getOrderBy());
+			}		
+			else if(mainSql.indexOf(" order by ")<=0 && mainSql.indexOf(" ORDER BY ")<=0){
+				addOrderBy(metaData, sql);
+			}		
+			// Handle limit and offset
+			if (request.getSelectLimit() != null) {
+				// Call concrete database-specific class to get the limit clause
+				sql.appendToBothClauses(buildSelectLimitSql(request.getSelectLimit().intValue(), request
+						.getSelectOffset().intValue()));
+			}
 
-	// Public methods
-
+			sql.compileStatements();
+			return sql;
+		}
+		
 	/** Creates select SQL. */
 	@Override
 	public SqlStruct buildSelectSql(final SqlResourceMetaData metaData, final String mainSql,
@@ -38,8 +79,14 @@ public abstract class AbstractSqlBuilder implements SqlBuilder {
 		sql.getMain().append(mainSql);
 		buildSelectSql(metaData, request.getResourceIdentifiers(), sql);
 		buildSelectSql(metaData, request.getParameters(), sql);
-		addOrderBy(metaData, sql);
-
+		
+		if(request.getOrderBy()!=null){
+			sql.appendToBothClauses(" ORDER BY ");
+			sql.appendToBothClauses(request.getOrderBy());
+		}		
+		else if(mainSql.indexOf(" order by ")<=0 && mainSql.indexOf(" ORDER BY ")<=0){
+			addOrderBy(metaData, sql);
+		}		
 		// Handle limit and offset
 		if (request.getSelectLimit() != null) {
 			// Call concrete database-specific class to get the limit clause
@@ -100,7 +147,7 @@ public abstract class AbstractSqlBuilder implements SqlBuilder {
 				} else {
 					sql.appendToBothClauses(", ");
 				}
-				sql.appendToBothClauses(column.getQualifiedColumnName());
+				sql.appendToBothClauses(column.getQualifiedColumnName()+" DESC ");
 			}
 		}
 		return firstColumn;

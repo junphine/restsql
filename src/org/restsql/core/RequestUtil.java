@@ -107,7 +107,7 @@ public class RequestUtil {
 			}
 		}
 		if (responseMediaType == null) {
-			if (acceptMediaType != null && acceptMediaType.length() > 0) {
+			if (acceptMediaType != null && acceptMediaType.length() > 14) {
 				responseMediaType = MediaTypeParser.bestMatch(supportedMediaTypes, acceptMediaType);
 				if (responseMediaType == null || responseMediaType.length() == 0) {
 					responseMediaType = acceptMediaType;

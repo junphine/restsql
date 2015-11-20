@@ -5,13 +5,21 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import org.restsql.core.Factory.SqlResourceFactory;
+import org.restsql.core.Factory.SqlResourceFactoryException;
+import org.restsql.core.sqlresource.SqlResourceDefinition;
+
 /**
  * Builds SQL for an operation on a SQL Resource.
  * 
  * @author Mark Sawers
  */
-public interface SqlBuilder {
+public interface SqlBuilder {	
 
+	/** Creates select SQL. */
+	public SqlStruct buildSelectSql(final SqlResourceMetaData metaData, final String mainSql,
+			final Request request,SqlResourceDefinition definition) throws InvalidRequestException;
+	
 	/** Creates select SQL. */
 	public SqlStruct buildSelectSql(final SqlResourceMetaData metaData, final String mainSql,
 			final Request request) throws InvalidRequestException;
@@ -29,7 +37,7 @@ public interface SqlBuilder {
 		private final StringBuilder clause, main, preparedClause, preparedStatement, statement;
 		private StringBuilder preparedMain;
 		private final List<Object> preparedValues;
-
+		public String groupby = null;
 		public SqlStruct(final int mainSize, final int clauseSize) {
 			main = new StringBuilder(mainSize);
 			clause = new StringBuilder(clauseSize);

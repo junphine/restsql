@@ -177,6 +177,9 @@ public class JsonRequestDeserializer implements RequestDeserializer {
 					parserState = ParserState.EndLevel2Object;
 					break;
 				case EndLevel1Array:
+					break;
+				case EndLevel1Object:
+					parserState = ParserState.EndLevel1Array;
 					break;		// we're done
 				default:
 					throw new ParseException(ParseException.ERROR_UNEXPECTED_EXCEPTION,
@@ -275,6 +278,9 @@ public class JsonRequestDeserializer implements RequestDeserializer {
 				case EndLevel2Object:
 				case AtLevel2Array:
 					parserState = ParserState.AtLevel2Object;
+					break;
+				case AtLevel1Name: //add@byron
+					parserState = ParserState.AtLevel1Object;
 					break;
 				default:
 					throw new ParseException(ParseException.ERROR_UNEXPECTED_EXCEPTION,

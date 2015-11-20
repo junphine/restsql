@@ -26,6 +26,7 @@ import org.restsql.core.Config;
 import org.restsql.core.Factory;
 import org.restsql.core.HttpRequestAttributes;
 import org.restsql.core.Request;
+import org.restsql.core.Factory.SqlResourceFactoryException;
 import org.restsql.core.Request.Type;
 import org.restsql.core.RequestLogger;
 import org.restsql.core.RequestUtil;
@@ -144,9 +145,30 @@ public class ResResource {
 
 	@GET
 	@Produces(MediaType.TEXT_HTML)
-	public Response getResources(@Context final UriInfo uriInfo) {
+	public Response getResources(@Context final UriInfo uriInfo,@Context final HttpServletRequest httpRequest) {
 		confRequestCounter.inc();
-		final StringBuffer requestBody = HttpRequestHelper.buildSqlResourceListing(uriInfo);
+		String output = httpRequest.getParameter("_output");
+		if(output!=null && output.equals("json")){
+			StringBuffer body=new StringBuffer();
+			try{			
+				List<String> resNames = Factory.getSqlResourceNames();
+				body.append("\n\t\t{\"resources\": [");
+				boolean first=true;
+				for(String name:resNames){
+					if(!first){						body.append(",");					}
+					first=false;
+					body.append("\"");					
+					body.append(name);
+					body.append("\"");
+				}
+				body.append("]\n\t\t} ");
+			} catch (final SqlResourceFactoryException exception) {
+				body.append(exception.getMessage());
+				body.append(" ... please correct your <code>sqlresources.dir</code> property in your restsql.properties file");				
+			}
+			return Response.ok(body.toString()).build();
+		}
+		StringBuffer requestBody = HttpRequestHelper.buildSqlResourceListing(uriInfo);
 		return Response.ok(requestBody.toString()).build();
 	}
 

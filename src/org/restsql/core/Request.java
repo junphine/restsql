@@ -12,6 +12,7 @@ public interface Request {
 	public static final String PARAM_NAME_LIMIT = "_limit";
 	public static final String PARAM_NAME_OFFSET = "_offset";
 	public static final String PARAM_NAME_OUTPUT = "_output";
+	public static final String PARAM_NAME_ORDERBY = "_orderby";
 
 	/** Returns children CUD requests to a single parent for a hierarchical SQL Resource. */
 	public List<List<RequestValue>> getChildrenParameters();
@@ -40,6 +41,8 @@ public interface Request {
 	/** Returns select row offset, if any. */
 	public Integer getSelectOffset();
 
+	public String getOrderBy();
+	
 	/** Returns SQL Resource name. */
 	public String getSqlResource();
 

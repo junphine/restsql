@@ -123,7 +123,7 @@ public class SqlResourceImpl implements SqlResource {
 	 */
 	@Override
 	public WriteResponse write(final Request request) throws SqlResourceException {
-		TriggerManager.executeTriggers(getName(), request, true);
+	
 
 		// Init response
 		final WriteResponse response = new WriteResponse();
@@ -137,6 +137,7 @@ public class SqlResourceImpl implements SqlResource {
 		Connection connection = null;
 
 		try {
+			TriggerManager.executeTriggers(getName(), request, true);
 			connection = Factory.getConnection(SqlResourceDefinitionUtils.getDefaultDatabase(definition));
 			if (metaData.isHierarchical()) {
 				final Request childRequest = Factory.getChildRequest(request);
@@ -193,9 +194,24 @@ public class SqlResourceImpl implements SqlResource {
 				response.addRow(responseValues);
 			}
 			response.addRowsAffected(rowsAffected);
-
-		} catch (final SQLException exception) {
-			throw new SqlResourceException(exception);
+		} catch (final SQLException sqlEx) {
+				response.addAttribute("id",sqlEx.getSQLState());			
+				response.addAttribute("errorCode",sqlEx.getErrorCode());			
+				response.addAttribute("errorMessage", sqlEx.getMessage());	
+				response.addRowsAffected(rowsAffected);
+			
+		
+		} catch (final SqlResourceException exception) {
+			if(exception.getCause()!=null && exception.getCause() instanceof SQLException  ){
+				SQLException sqlEx = (SQLException) exception.getCause();			
+				response.addRowsAffected(rowsAffected);
+				response.addAttribute("id",sqlEx.getSQLState());	
+				response.addAttribute("errorCode",sqlEx.getErrorCode());			
+				response.addAttribute("errorMessage", sqlEx.getMessage());	
+			}
+			else{
+				throw new SqlResourceException(exception); //modify@byron
+			}
 		} finally {
 			if (connection != null) {
 				try {
@@ -329,8 +345,9 @@ public class SqlResourceImpl implements SqlResource {
 
 		final Object results;
 		Connection connection = null;
+		
 		final SqlStruct sqlStruct = sqlBuilder.buildSelectSql(metaData, definition.getQuery().getValue(),
-				request);
+				request,this.definition);
 		try {
 			connection = Factory.getConnection(SqlResourceDefinitionUtils.getDefaultDatabase(definition));
 			final PreparedStatement statement = connection.prepareStatement(sqlStruct.getPreparedStatement());

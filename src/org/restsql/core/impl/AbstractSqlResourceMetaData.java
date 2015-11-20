@@ -398,7 +398,7 @@ public abstract class AbstractSqlResourceMetaData implements SqlResourceMetaData
 		final Request request = Factory.getRequest(Type.SELECT, resName, null, null, null, null);
 		request.setSelectLimit(new Integer(1));
 		request.setSelectOffset(new Integer(0));
-		return sqlBuilder.buildSelectSql(this, definition.getQuery().getValue(), request).getStatement();
+		return sqlBuilder.buildSelectSql(this, definition.getQuery().getValue(), request,definition).getStatement();
 	}
 
 	/**

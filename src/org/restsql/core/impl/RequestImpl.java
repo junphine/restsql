@@ -25,6 +25,8 @@ public class RequestImpl implements Request {
 	private Integer selectLimit, selectOffset;
 	private final String sqlResource;
 	private final Request.Type type;
+	
+	private String orderBy;
 
 	/** Constructs object. */
 	public RequestImpl(final HttpRequestAttributes httpAttributes, final Request.Type type,
@@ -143,6 +145,7 @@ public class RequestImpl implements Request {
 	@Override
 	public void extractParameters() throws InvalidRequestException {
 		if (params != null && params.size() > 0) {
+			RequestValue orderRequst=null;
 			RequestValue selectLimitRequestValue = null, selectOffsetRequestValue = null;
 			for (final RequestValue requestValue : params) {
 				// Extract limit and offset
@@ -151,6 +154,10 @@ public class RequestImpl implements Request {
 				} else if (requestValue.getName().equalsIgnoreCase(Request.PARAM_NAME_OFFSET)) {
 					selectOffsetRequestValue = setSelectLimitOrOffset(Request.PARAM_NAME_OFFSET, requestValue);
 				}
+				else if (requestValue.getName().equalsIgnoreCase(Request.PARAM_NAME_ORDERBY)) {
+					orderRequst = requestValue;
+					this.orderBy = requestValue.getValue().toString();
+				} 
 			}
 
 			// Validate both limit and offset provided
@@ -162,6 +169,9 @@ public class RequestImpl implements Request {
 				} else if (selectLimit != null && selectOffset != null) {
 					params.remove(selectLimitRequestValue);
 					params.remove(selectOffsetRequestValue);
+				}
+				if (orderRequst != null) {
+					params.remove(orderRequst);					
 				}
 			}
 		}
@@ -191,5 +201,13 @@ public class RequestImpl implements Request {
 					+ " is not an Integer");
 		}
 		return requestValue;
+	}
+
+	public String getOrderBy() {
+		return orderBy;
+	}
+
+	public void setOrderBy(String orderBy) {
+		this.orderBy = orderBy;
 	}
 }
